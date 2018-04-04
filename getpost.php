@@ -30,8 +30,9 @@ if (!empty($_POST["addflist"])) {
 }
 ?>
 
-<?php include('header.php') ?>
-<style><?php include 'css/style.css'; ?></style>
+<?php require_once('header.php') ?>
+<?php require_once('dbConnect.php'); ?>
+<link rel="stylesheet" type="text/css" href="css/style.css"/>
 
 <div class="panel">
     <div class="row">
@@ -39,31 +40,26 @@ if (!empty($_POST["addflist"])) {
         <div class="col-sm-4"> <!--left table-->
 
             <?php
-            //importing dbConnect.php script
-            require_once('dbConnect.php');
-
-            //Creating sql query
             $sql = "SELECT * FROM post order by date DESC ";
-
-            //executing query
             $result = mysqli_query($con, $sql);
-
-            //fetching result
-            echo '<table class="table table-hover" >';
-            echo '<thead><tr><th>Title</th><th>Date</th></tr></thead>';
-            echo '<tbody>';
-            while ($row = mysqli_fetch_assoc($result)) {
-                echo '<tr><td>';
-//                $sql_vote = "SELECT "
-                echo '<img src="/images/vote.png" height = "25px" style="padding-bottom: 10px">  ';
-                echo '<a href="?postid=' . $row["post_id"] . '">' . $row["title"] . '</a></td><td>' . $row["date"] . '</td></tr>';
-            }
-            echo '</tbody></table>';
             ?>
-
-
+            <table class="table table-hover">
+            <thead><tr><th>Title</th><th>Date</th></tr></thead>
+            <tbody>
+            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                <tr>
+                    <td>
+                        <img src="/images/vote.png" height = "25px" style="padding-bottom: 10px"/>
+                        <?php $url = "?" . http_build_query(["postid" => $row["post_id"]], "", "&amp;"); ?>
+                        <a href="<?php echo $url; ?>"><?php echo $row["title"]; ?></a>
+                    </td>
+                    <td>
+                        <?php echo $row["date"]; ?>
+                    </td>
+                </tr>
+            <?php } ?>
+            </tbody></table>
         </div>
-
 
         <div class="col-sm-8"> <!--right table-->
             <?php
@@ -221,22 +217,27 @@ if (!empty($_POST["addflist"])) {
                                 $result_dislike = mysqli_query($con, $sql_dislike);
                                 $like = mysqli_fetch_assoc($result_like);
                                 $dislike = mysqli_fetch_assoc($result_dislike);
-                                $style = "border: none; padding: 10px";
-//                                if (!$login) {
-//                                    $style = "border: none; padding: 10px";
-//                                }
-//                                echo '<td style= ' . $style . ' height="30px" valign="bottom">';
-                                echo '<td style="border: none; padding: 10px" height="30px" valign="bottom">';
-                                echo '<button style="border: none;"><img src="images/like.png" alt="like" style="height:30px; width:30px; border: none"></button>';
-                                echo $like['count'] . '</td>';
-                                /*echo '<td style="<?php echo $style; ?>" height="30px" valign="bottom">';*/
-                                echo '<td style="border: none; padding: 10px" height="30px" valign="bottom">';
-                                echo '<button style="border: none; "><img src="images/dislike.png" alt="like" style="height:30px; width:30px; border: none"></button>';
-                                echo $dislike['count'] . '</td>';
-                                echo '</tr>';
+                                $style = "border: none !important; padding: 10px !important";
+                                if (!$login) {
+                                    $style = " padding: 10px";
+                                }
+                                ?>
+                                <td style= ' . $style . ' height="30px" valign="bottom">
+                                <td style="border: none; padding: 10px" height="30px" valign="bottom">
+                                    <button style="border: none;">
+                                        <img src="images/like.png" alt="like" style="height:30px; width:30px; border: none">
+                                    </button>
+                                    <?php echo $like['count'] ?>
+                                </td>
+                                <td style="<?php echo $style; ?>" height="30px" valign="bottom">
+                                <td style="border: none; padding: 10px" height="30px" valign="bottom">
+                                <button style="border: none; "><img src="images/dislike.png" alt="like" style="height:30px; width:30px; border: none"></button>
+                                <?php echo $dislike['count'] ?>
+                                </td>
+                                </tr>
+                                <?php
                                 $i++;
-                            }
-                            ?>
+                            }?>
                             </tbody>
                         </table>
 
@@ -338,28 +339,34 @@ if (!empty($_POST["addflist"])) {
                                     }
 
                                     while ($row2 = mysqli_fetch_assoc($result2)){
-                                        echo '<tr>';
-                                        echo '<td width="50px" rowspan="2" align="center" height="70">';
-                                        if ($userpermit != 0 && !$voted) {
-                                            echo '<input type="radio" name=vote value="' . $row2['poll_id'] . '"">';
-                                        }
-                                        echo '</td>';
-                                        echo '<td style="padding-top: 5px; word-wrap: break-word" height="35">' . $i . '. ' . $row2['poll_description'] . '</td>';
-                                        echo '<tr>';
-                                        echo '<td height="35" style="padding-bottom: 5px">';
-                                        $progressbar = (((int)$row2['poll_count']) / $count_total) * 100 * $scale;
-                                        echo '<div class="percentbar" style="width:' . 100 * $scale . ';">';
-                                        echo '<div style="width:' . $progressbar . ';"></div>';
-                                        echo '</div>';
-                                        echo '<td style="padding-bottom: 6px; padding-left: 5px; font-size: 14px">' . number_format((int)$row2['poll_count']/$count_total*100, 2, '.', '') . '% (' . $row2['poll_count'] . ')</td>';
-                                        echo '</td>';
-                                        echo '</tr>';
-                                        echo '</tr>';
+                                        ?>
+                                        <tr>
+                                        <td width="50px" rowspan="2" align="center" height="70">
+                                        <?php if ($userpermit != 0 && !$voted) { ?>
+                                             <input type="radio" name=vote value="<?php $row2['poll_id']; ?>">
+                                        <?php } ?>
+                                        </td>
+                                        <td style="padding-top: 5px; word-wrap: break-word" height="35"><?php echo $i; ?>. <?php echo $row2['poll_description']; ?></td>
+                                        <tr>
+                                        <td height="35" style="padding-bottom: 5px">
+                                        <?php $progressbar = (((int)$row2['poll_count']) / $count_total) * 100 * $scale; ?>
+                                        <div class="percentbar" style="width:<?php echo 100 * $scale ?>">
+                                        <div style="width:'<?php echo $progressbar ?>';"></div>
+                                        </div>
+                                        <td style="padding-bottom: 6px; padding-left: 5px; font-size: 14px">
+                                                <?php echo number_format((int)$row2['poll_count']/$count_total*100, 2, '.', '')?> . % (<?php echo$row2['poll_count'] ?> . )
+                                            </td>
+                                        </td>
+                                        </tr>
+                                        </tr>
+                                        </tr>
+                                        <?php
                                         $i++;
-                                    }
-                                echo '</table>';
+                                    } ?>
+                                </table>
 
-//                                if ($userpermit != 0) {
+                                <?php
+//                              if ($userpermit != 0) {
                                 if (isset($_SESSION['username']) && isset($_SESSION['user_id'])) {
                                     if ($userpermit != 0) {
                                         if (!isset($_GET["postid"])) {
