@@ -299,8 +299,8 @@ function render_voting($pid, $login, $user_id, $con) {
                         <tr>
                             <td height="35" style="padding-bottom: 5px">
                                 <?php $progressbar = (((int)$row2['poll_count']) / $count_total) * 100 * $scale; ?>
-                                <div class="percentbar" style="width:<?php echo 100 * $scale ?>">
-                                    <div style="width:<?php echo $progressbar ?>;"></div>
+                                <div class="percentbar" style="width:<?php echo 100 * $scale ?>px">
+                                    <div style="width:<?php echo $progressbar ?>px;"></div>
                                 </div>
                             <td style="padding-bottom: 6px; padding-left: 5px; font-size: 14px">
                                 <?php echo number_format((int)$row2['poll_count']/$count_total*100, 2, '.', '')?>% (<?php echo$row2['poll_count'] ?>)
