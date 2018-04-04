@@ -2,12 +2,16 @@
 
 session_start();
 
-function query($sql, $types, $params) {
-    $conn = mysqli_connect('localhost', 'root', '', 'ouhks356_db');
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-    mysqli_stmt_execute($stmt);
+function query($sql, $params = []) {
+    $conn = new \PDO("mysql:dbname=ouhks356_db;host=localhost", "root", "");
+    $conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    $stmt = $conn->prepare($sql);
 
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(":" . $key, $value);
+    }
+    $stmt->execute();
+    $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-//    while (mysqli_fetch_assoc)
+    return $result;
 }
