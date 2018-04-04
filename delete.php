@@ -8,7 +8,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
-
+<!--TODO remove records in poll as well-->
 <?php
 //importing dbConnect.php script
 require_once('dbConnect.php');

@@ -7,6 +7,7 @@
 -- 伺服器版本: 5.5.54-MariaDB
 -- PHP 版本： 5.4.45
 
+DROP DATABASE IF EXISTS ouhks356_db;
 CREATE DATABASE ouhks356_db;
 USE ouhks356_db;
 
@@ -19,6 +20,8 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
+
+/*TODO check Primary and Foreign keys*/
 --
 -- 資料庫： `ouhks356_db`
 --
@@ -47,7 +50,6 @@ INSERT INTO `blacklist` (`id`, `user_id`, `blacklist_user_id`) VALUES
 (9, 46, 20);
 
 -- --------------------------------------------------------
-
 --
 -- 資料表結構 `category`
 --
@@ -63,7 +65,8 @@ CREATE TABLE IF NOT EXISTS `category` (
 --
 
 INSERT INTO `category` (`category_id`, `name`, `description`) VALUES
-(1, 'category_1', 'test123');
+(1, 'normal', 'normal post'),
+(2, 'vote', 'voting post (user story)');
 
 -- --------------------------------------------------------
 
@@ -189,6 +192,53 @@ INSERT INTO `favoritelist` (`id`, `user_id`, `post_id`) VALUES
 -- --------------------------------------------------------
 
 --
+-- 資料表結構 `poll`
+--
+
+CREATE TABLE IF NOT EXISTS `poll` (
+  `poll_id` int(8) NOT NULL AUTO_INCREMENT,
+  `poll_description` varchar(10000) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `poll_count` int(8) NOT NULL,
+  `post_id` int(8) NOT NULL,
+ PRIMARY KEY (`poll_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- 資料表的匯出資料 `poll`
+--
+
+INSERT INTO `poll` (`poll_description`, `poll_count`, `post_id`) VALUES
+("I like this vote", 5, 78),
+("I DON'T like this vote", 2, 78),
+("This forum is excellent", 20, 79),
+("This forum has to improve", 5, 79);
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `poll_record`
+--
+
+CREATE TABLE IF NOT EXISTS `poll_record` ( /*category 0(like), category 1(dislike), category 2(voting post)*/
+  `poll_record_id` int(8) NOT NULL AUTO_INCREMENT,
+  `poll_id` int(8), /* NULL = record of like or dislike */
+  `comment_id` int(8), /* NULL = record of voting post */
+  `user_id` int(8) NOT NULL,
+  `category_id` int(8) NOT NULL,
+  `date` date,
+  `post_id` int(11) NOT NULL,
+ PRIMARY KEY (`poll_record_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- 資料表的匯出資料 `poll_record`
+--
+
+/*INSERT INTO `poll_record` (`poll_record_id`, `poll_id`, `user_id`, category_id, date, post_id) VALUES
+(1, 78, 38)*/
+
+-- --------------------------------------------------------
+
+--
 -- 資料表結構 `post`
 --
 
@@ -218,7 +268,9 @@ INSERT INTO `post` (`post_id`, `title`, `date`, `category_id`, `user_id`) VALUES
 (58, 'testsetsetset', '2017-12-07', 1, 20),
 (60, 'Testing del fav', '2017-12-07', 1, 5),
 (76, 'testing', '2017-12-08', 1, 47),
-(77, 'I love Avatar', '2017-12-08', 1, 37);
+(77, 'I love Avatar', '2017-12-08', 1, 37),
+(78, 'First vote', '2017-12-10', 2, 9),
+(79, 'Second vote', '2017-12-11', 2, 9);
 
 -- --------------------------------------------------------
 

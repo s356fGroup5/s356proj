@@ -5,7 +5,9 @@
         <br>
 
         <div class="row">
-            <div class="col-sm-3"></div>
+            <div class="col-sm-3">
+                <input type="button" onclick="loginAs('admin')" value="admin">
+            </div>
             <div class="col-sm-6">
 
                 <?php
@@ -57,7 +59,7 @@
                         }
                     }
                     echo '<form action="" method=post>
-Username: <input type="text" name="username" size=30 class="form-control"><br>
+Username: <input type="text" name="username" id="username" size=30 class="form-control"><br>
 Password: <input type="password" name="password" size=27 class="form-control"><br>
 <br>
 <input type="submit" value="Submit" class="btn">
@@ -66,6 +68,11 @@ Password: <input type="password" name="password" size=27 class="form-control"><b
 ';
 
                     mysqli_close($con);
+                }
+
+                function loginAs($user){
+                    echo '<script type="text/javascript">' . 'document.getElementById("username").value = ' . $user . ';' . '</script>';
+//                    echo '<script type="text/javascript">' . 'document.getElementById("password").value = ' . $user . ';' . '</script>';
                 }
                 ?>
 

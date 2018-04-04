@@ -44,6 +44,10 @@
         //importing dbConnect.php script 
 
 
+//        if (!isset($_GET["action"])) {
+//            header("refresh:3;url=./admin.php?action");
+//        }
+
         $admin_sql = 'SELECT ut.permission FROM user u, user_type ut WHERE u.type_id = ut.type_id AND u.user_id =' . $_SESSION['user_id'] . '';
         $admin_result = mysqli_query($con, $admin_sql);
         $admin_row = mysqli_fetch_row($admin_result);
@@ -55,6 +59,11 @@
 
             <ul class="nav nav-tabs">
                 <?php
+
+                if (!isset($_GET["action"])) {
+                    header("Location: ./admin.php?action");
+                }
+
                 echo ($_GET['action'] == '') ?
                     '<li class="active"><a href="./admin.php?action">Statistics</a></li>' :
                     '<li class="none"><a href="./admin.php?action">Statistics</a></li>';
@@ -73,6 +82,7 @@
                     '<li class="active"><a href="?action=reportcmlist">Report CM List</a></li>' :
                     '<li class="none"><a href="?action=reportcmlist">Report CM List</a></li>';
                 ?>
+
             </ul>
 
             <?php
@@ -262,15 +272,14 @@
 
 
                     echo '<label>To: ' . $username . '</label>
-		 <form action="./admin-message.php" method=post>
-		 <input type="hidden" name="to" value="' . $email . '">
-		 <label>Subject: </label><input class="form-control" type="text" name="subject">
-		 <label>Content: </label><textarea class="form-control" type="text" name="content"></textarea>
-		 <input type="hidden" name="username" value="' . $username . '">
-		 <br>
-		 <input type="submit" value="Submit" class="btn btn-default">
-		 
-		 </form>';
+		    <form action="./admin-message.php" method=post>
+                 <input type="hidden" name="to" value="' . $email . '">
+                 <label>Subject: </label><input class="form-control" type="text" name="subject">
+                 <label>Content: </label><textarea class="form-control" type="text" name="content"></textarea>
+                 <input type="hidden" name="username" value="' . $username . '">
+                 <br>
+                 <input type="submit" value="Submit" class="btn btn-default">
+		    </form>';
                     echo '</div></div>';
 
                 }
