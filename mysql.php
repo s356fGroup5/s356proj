@@ -1,6 +1,8 @@
 <?php namespace mysql;
 
-session_start();
+if(!isset($_SESSION)) {
+    session_start();
+}
 
 function query($sql, $params = []) {
     $conn = new \PDO("mysql:dbname=ouhks356_db;host=localhost", "root", "");

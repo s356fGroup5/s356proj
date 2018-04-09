@@ -44,7 +44,7 @@ function login_as() {
     }
 }
 
-function is_allow_to_vote_and_comment() {
+function is_allowed_to_vote_and_comment() {
     return login_as() != null && permission_of(login_as()) != 0;
 }
 
@@ -62,12 +62,27 @@ function is_blacklisted_by_me($user_id) {
     }
 }
 
-var_dump(is_blacklisted_by_me(51));
+//var_dump(is_blacklisted_by_me(51));
 
-function render_comments($post, $con) {
+function fetch_latest_post_id() {
+    return \mysql\query("SELECT post_id FROM post ORDER BY post_id DESC LIMIT 1")[0]["post_id"];
+}
+
+function fetch_post_info($post_id) {
+    return \mysql\query("SELECT *, (SELECT username FROM user u WHERE p.user_id = u.user_id) AS username
+                         FROM post p WHERE post_id = :id", ["id" => $post_id])[0];
+}
+
+function like($comment) {
+
+}
+
+function dislike() {
+
+}
+
+function render_comments($post) {
     $pid = $post["post_id"];
-    $login = login_as();
-
 
     ?>
     <br>
@@ -96,7 +111,6 @@ function render_comments($post, $con) {
                 <tbody>
                 <?php // Comment
 
-
                 $userpermit = login_as() ? permission_of(login_as()) : 0;
 
                 $comments = \mysql\query("SELECT comment_id, comment, c.user_id, username, icon, c.post_id 
@@ -112,7 +126,7 @@ function render_comments($post, $con) {
                     <tr>
                     <?php if ($userpermit == 0) { ?>
                         <td align="center" width="25%" rowspan="2">
-                            Comment <?php $index + 1; ?><br>
+                            Comment <?php echo $index + 1; ?><br>
                             <img src="./images/icon/<?php echo $comment['icon']; ?>"><br>
                             <a href="./profile.php?userid=<?php echo $comment['user_id']; ?>">
                                 <?php echo $comment['username']; ?>
@@ -120,7 +134,7 @@ function render_comments($post, $con) {
                         </td>
                     <?php } else if ($userpermit == 140 || $userpermit == 255 || $userpermit == 256) { ?>
                         <td align="center" width="25%" rowspan="2">
-                            Comment <?php $index + 1; ?><br>
+                            Comment <?php echo $index + 1; ?><br>
                             <a href="./edit.php?comment=<?php echo $comment['comment_id']; ?>">
                                 [Edit]
                             </a>
@@ -136,7 +150,7 @@ function render_comments($post, $con) {
                         </td>
                     <?php } else if (login_as() == $comment['user_id']) { ?>
                         <td align="center" width="25%" rowspan="2">
-                            Comment <?php $index + 1; ?><br>
+                            Comment <?php echo $index + 1; ?><br>
                             <a href="./edit.php?comment=<?php echo $comment['comment_id']; ?>">
                                 [Edit]
                             </a>
@@ -148,7 +162,7 @@ function render_comments($post, $con) {
                         </td>
                     <?php } else { ?>
                         <td align="center" width="25%" rowspan="2">
-                            Comment <?php $index + 1; ?><br>
+                            Comment <?php echo $index + 1; ?><br>
                             <img src="./images/icon/<?php echo $comment['icon']; ?>"><br>
                             <a href="./profile.php?userid=<?php echo $comment['user_id']; ?>">
                                 <?php echo $comment['username']; ?>
@@ -157,7 +171,6 @@ function render_comments($post, $con) {
                     <?php }
 
                     // column 2: show comment
-
                     if (is_blacklisted_by_me($comment["user_id"])) {
                         echo '<td width="50%" rowspan="2"> This comment is blocked!</td>';
                     } else {
@@ -165,44 +178,58 @@ function render_comments($post, $con) {
                     }
 
                     // column 3: show option for fav. & report
-                    if ($login) {
-                        if ($_SESSION['username'] != '' && $_SESSION['user_id'] != '') {
-                            if ($_SESSION['user_id'] == $comment['user_id']) {
-                                echo '<td colspan="2" style="border-bottom: none"><a class="btn btn-primary" href="./add_FavComment.php?comment_id=' . $comment['comment_id'] . '&post_id=' . $post['post_id'] . '">[Add comment to Favorite]</a>
-          <br>
-          <br>
-          <a class="btn btn-danger" href="./report.php?type=2&userid=' . $comment['user_id'] . '&postid=' . $post['post_id'] . '&commentid=' . $comment['comment_id'] . '&title=' . $post['title'] . '&comment=' . $comment['comment'] . '&username=' . $comment['username'] . '">[Report this comment]</a>
-          </td>';
-                            } else {
-                                echo '<td colspan="2" style="border-bottom: none"><a class="btn btn-primary" href="./add_FavComment.php?comment_id=' . $comment['comment_id'] . '&post_id=' . $post['post_id'] . '">[Add comment to Favorite]</a>
-          <br>
-          <br>
-          <a class="btn btn-danger" href="./report.php?type=2&userid=' . $comment['user_id'] . '&postid=' . $post['post_id'] . '&commentid=' . $comment['comment_id'] . '&title=' . $post['title'] . '&comment=' . $comment['comment'] . '&username=' . $comment['username'] . '">[Report this comment]</a>
-          <br>
-          <br>
-          <a class="btn btn-danger" href="./add_blacklist.php?blacklist=' . $comment['user_id'] . '">[Add user to Blacklist!]</a>
-          </td>';
-                            }
-                        }
-                    }
-                    echo '<tr style="border: none;">';
+                    if (login_as()) {
+                        if (login_as() == $comment['user_id']) { ?>
+                            <td colspan="2" style="border-bottom: none">
+                                <a class="btn btn-primary" href="./add_FavComment.php?comment_id=' . $comment['comment_id'] . '&post_id=' . $post['post_id'] . '">
+                                    [Add comment to Favorite]
+                                </a>
+                                <br>
+                                <br>
+                            </td>
+                        <?php } else { ?>
+                            <td colspan="2" style="border-bottom: none">
+                                <a class="btn btn-primary"
+                                   href="./add_FavComment.php?comment_id=' . $comment['comment_id'] . '&post_id=' . $post['post_id'] . '">
+                                    [Add comment to Favorite]
+                                </a>
+                                <br>
+                                <br>
+                                <a class="btn btn-danger"
+                                   href="./report.php?type=2&userid=' . $comment['user_id'] . '&postid=' . $post['post_id'] . '&commentid=' . $comment['comment_id'] . '&title=' . $post['title'] . '&comment=' . $comment['comment'] . '&username=' . $comment['username'] . '">
+                                    [Report this comment]
+                                </a>
+                                <br>
+                                <br>
+                                <a class="btn btn-danger"
+                                   href="./add_blacklist.php?blacklist=' . $comment['user_id'] . '">
+                                    [Add user to Blacklist!]
+                                </a>
+                            </td>
+                        <?php }
+                    } ?>
+                    <tr style="border: none;">
+                    <?php
                     $comment_id = $comment['comment_id'];
-                    $sql_like = "SELECT COUNT(category_id) AS count FROM poll_record WHERE comment_id = $comment_id AND category_id = 0";
-                    $sql_dislike = "SELECT COUNT(category_id) AS count FROM poll_record WHERE comment_id = $comment_id AND category_id = 1";
-                    $result_like = mysqli_query($con, $sql_like);
-                    $result_dislike = mysqli_query($con, $sql_dislike);
-                    $like = mysqli_fetch_assoc($result_like);
-                    $dislike = mysqli_fetch_assoc($result_dislike);
+                    $like = \mysql\query("SELECT COUNT(category_id) AS count 
+                                 FROM poll_record 
+                                 WHERE comment_id = :comment_id AND category_id = 0",
+                                 ["comment_id" => $comment_id])[0];
+                    $dislike = \mysql\query("SELECT COUNT(category_id) AS count 
+                                 FROM poll_record 
+                                 WHERE comment_id = :comment_id AND category_id = 1",
+                                 ["comment_id" => $comment_id])[0];
                     ?>
-                    <td style="border: none; padding: 10px" height="30px" valign="bottom">
+                    <td style="border: none; padding: 10px" valign="bottom">
                         <button style="border: none;">
                             <img src="images/like.png" alt="like" style="height:30px; width:30px; border: none">
                         </button>
                         <?php echo $like['count'] ?>
                     </td>
                     <td style="border: none; padding: 10px" height="30px" valign="bottom">
-                    <td style="border: none; padding: 10px" height="30px" valign="bottom">
-                        <button style="border: none; "><img src="images/dislike.png" alt="like" style="height:30px; width:30px; border: none"></button>
+                        <button style="border: none; ">
+                            <img src="images/dislike.png" alt="like" style="height:30px; width:30px; border: none">
+                        </button>
                         <?php echo $dislike['count'] ?>
                     </td>
                     </tr>
@@ -211,7 +238,7 @@ function render_comments($post, $con) {
                 </tbody>
             </table>
 
-            <?php if (is_allow_to_vote_and_comment()) { ?>
+            <?php if (is_allowed_to_vote_and_comment()) { ?>
                 <form action="./reply.php" method=post>
                     Reply: <textarea name="reply" rows="10" cols="80" class="form-control"></textarea><br>
                     <?php
@@ -224,68 +251,41 @@ function render_comments($post, $con) {
                 </form>
             <?php } ?>
 
-
             <br>
-            <button onclick="window.location.href='./index.php'" align='right'>Go Back</button>
+            <button onclick="window.location.href='./index.php'" style="align:right">Go Back</button>
         </div>
-    </div>
     </div>
     <?php
 }
-?>
 
-<?php
-function fetch_latest_post_id() {
-    return \mysql\query("SELECT post_id FROM post ORDER BY post_id DESC LIMIT 1")[0]["post_id"];
-}
+function render_voting($post, $con) {
+    $pid = $post["post_id"];
+    $login = login_as();
+    $user_id = $post["user_id"];
 
-function fetch_post_info($post_id) {
-    return \mysql\query("SELECT *, (SELECT username FROM user u WHERE p.user_id = u.user_id) AS username
-                         FROM post p WHERE post_id = :id", ["id" => $post_id])[0];
-}
-
-function render_voting($pid, $login, $user_id, $con) {
-
-    //Creating sql query
-    $sql = "SELECT post_id, title, username, date, u.user_id FROM post p, user u WHERE post_id =$pid and p.user_id=u.user_id ;";
-    if ($login) {
-        $sql3 = "SELECT blacklist_user_id FROM blacklist WHERE user_id = $user_id";
-    }
-    //executing query
-    $result = mysqli_query($con, $sql);
-    $row = mysqli_fetch_array($result, MYSQLI_ASSOC);
-    if ($login) {
-        $result3 = mysqli_query($con, $sql3);
-        $j = 0;
-        $blacklist_check = array();
-        while ($buser_list = mysqli_fetch_assoc($result3)) {
-            $blacklist_check[$j] = $buser_list['blacklist_user_id'];
-            $j++;
-        }
-    }
     ?>
-
     <br>
     <div class="panel panel-default">
         <div class="panel-body">
-            <table>
-                <thead>
-                <?php echo "<h2>" . $row["title"] . "</h2><br>";
-                echo '<a href="./report.php?type=1&userid=' . $row['user_id'] . '&postid=' . $row['post_id'] . '&title=' . $row['title'] . '&username=' . $row['username'] . '">[Report this post]</a>';
-                echo "<br>Owner: " . $row["username"] . "<br>Created in: " . $row["date"] . "<br>"; ?>
+            <div>
+                <h2><?php echo $post["title"]; ?></h2>
                 <?php
-                if ($login) {
-                    if ($_SESSION['username'] != "" && $_SESSION['user_id'] != "") {
-                        ?>
-                        <form method="post" onSubmit="return addtolist();" >
-                            <button type="submit" name="addflist" id="addflist" value="Submit" class="btn btn-secondary">Add to My favorites list</button>
-                        </form>
-                        <?php
-                    }
-                }
+                $params = ["type" => 1, "userid" => $post['user_id'], "postid" => $post['post_id'],
+                    "title" => $post['title'], "username" => $post['username']];
+                $url = "report.php?" . http_build_query($params, '', '&amp;');
                 ?>
-                </thead>
-            </table>
+                <a href="<?php echo $url; ?>">[Report this post]</a><br>
+                Owner: <?php echo $post["username"]; ?><br>
+                Created in: <?php echo $post["date"]; ?><br>
+
+                <?php if (login_as()) { ?>
+                    <form method="post" onSubmit="return addtolist();">
+                        <button type="submit" name="addflist" id="addflist" value="Submit"
+                                class="btn btn-secondary">Add to My favorites list
+                        </button>
+                    </form>
+                <?php } ?>
+            </div>
 
             <form method="post" action="./vote.php">
                 <table style="font-size: 16.5px; table-layout: fixed; width=100%; margin 15px 0">
@@ -349,10 +349,10 @@ function render_voting($pid, $login, $user_id, $con) {
 
                 <?php
                 //                              if ($userpermit != 0) {
-                if (isset($_SESSION['username']) && isset($_SESSION['user_id'])) {
+                if (login_as()) {
                     if ($userpermit != 0) {
                         if (!isset($_GET["postid"])) {
-                            $pid = $row['post_id'];
+                            $pid = $post['post_id'];
                         } else {
                             $pid = $_GET["postid"];
                         }
@@ -407,9 +407,7 @@ function render_voting($pid, $login, $user_id, $con) {
 
 <div class="panel">
     <div class="row">
-
         <div class="col-sm-4"> <!--left table-->
-
             <?php
             $sql = "SELECT * FROM post order by date DESC ";
             $result = mysqli_query($con, $sql);
@@ -429,7 +427,9 @@ function render_voting($pid, $login, $user_id, $con) {
                                 <img src = "/images/vote.png" height = "25px" style = "padding-bottom: 10px" />
                             <?php }
                             $url = "?" . http_build_query(["postid" => $row["post_id"]], "", "&amp;"); ?>
-                            <a href="<?php echo $url; ?>"><?php echo $row["title"]; ?></a>
+                            <a href="<?php echo $url; ?>">
+                                <?php echo $row["title"]; ?>
+                            </a>
                         </div>
                         <div>
                             <?php echo $row["date"]; ?>
@@ -448,7 +448,7 @@ function render_voting($pid, $login, $user_id, $con) {
             if ($category == 1) {
                 render_comments($post, $con);
             } else if($category == 2) {
-                render_voting($pid, login_as(), login_as(), $con);
+                render_voting($post, $con);
             }
         ?>
 
