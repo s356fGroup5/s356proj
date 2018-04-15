@@ -17,3 +17,14 @@ function query($sql, $params = []) {
 
     return $result;
 }
+
+function execute($sql, $params = []) {
+    $conn = new \PDO("mysql:dbname=ouhks356_db;host=localhost", "root", "");
+    $conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    $stmt = $conn->prepare($sql);
+
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(":" . $key, $value);
+    }
+    $stmt->execute();
+}

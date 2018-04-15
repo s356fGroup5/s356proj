@@ -1,5 +1,7 @@
+
 <?php require_once('header.php') ?>
 <?php require_once("mysql.php"); ?>
+<?php require_once("util.php"); ?>
 <?php require_once('dbConnect.php'); ?>
 
 <?php
@@ -224,29 +226,20 @@ function render_comments($post) { ?><br>
                 <?php }
             } ?>
             <form method="post" action="">
-                <tr style="border: none;">
-                <?php
-                $comment_id = $comment['comment_id'];
-                $like = \mysql\query("SELECT COUNT(category_id) AS count 
-                             FROM poll_record 
-                             WHERE comment_id = :comment_id AND category_id = 0",
-                             ["comment_id" => $comment_id])[0];
-                $dislike = \mysql\query("SELECT COUNT(category_id) AS count 
-                             FROM poll_record 
-                             WHERE comment_id = :comment_id AND category_id = 1",
-                             ["comment_id" => $comment_id])[0];
-                ?>
+                <?php $comment_id = $comment['comment_id']; ?>
+                <tr class="post" pid="<?php echo $comment_id; ?>" style="border: none;">
                 <td style="border: none; padding: 10px" valign="bottom">
-                    <button style="border: none;" onclick="like_or_dislike();">
+                    <button class="like" style="border: none;"> 
                         <img src="images/like.png" alt="like" style="height:30px; width:30px; border: none">
                     </button>
-                    <?php echo $like['count'] ?>
+                    <span class="like-count"><?php echo \util\like_count($comment_id); ?></span>
+                    
                 </td>
                 <td style="border: none; padding: 10px" height="30px" valign="bottom">
-                    <button style="border: none; ">
+                    <button class="dislike" style="border: none; ">
                         <img src="images/dislike.png" alt="like" style="height:30px; width:30px; border: none">
                     </button>
-                    <?php echo $dislike['count'] ?>
+                    <span class="dislike-count"><?php echo \util\dislike_count($comment_id); ?></span>
                 </td>
                 </tr>
             </form>
@@ -449,7 +442,8 @@ function render_voting($post, $con) {
         </div>
     </div>
 </div>
-
+<script src="getpost.js"></script>
+<script src="axios.min.js"></script>
 </body>
 </html>
 
